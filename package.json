@@ -1,0 +1,46 @@
+{
+  "name": "cursor-background-agents-mcp-server",
+  "version": "1.0.0",
+  "description": "MCP server for Cursor Background Agents API - Launch and manage AI coding agents on GitHub repositories",
+  "type": "module",
+  "main": "dist/index.js",
+  "types": "dist/index.d.ts",
+  "scripts": {
+    "build": "tsc",
+    "dev": "bun run src/index.ts",
+    "dev:http": "MCP_SERVER_MODE=http bun run src/index.ts",
+    "start": "node dist/index.js",
+    "start:http": "MCP_SERVER_MODE=http node dist/index.js",
+    "inspect": "npx @modelcontextprotocol/inspector bun run src/index.ts",
+    "inspect:js": "npx @modelcontextprotocol/inspector node dist/index.js",
+    "inspect:http": "npx @modelcontextprotocol/inspector bun run src/index.ts --http"
+  },
+  "keywords": [
+    "mcp",
+    "cursor",
+    "background-agents",
+    "api",
+    "ai"
+  ],
+  "author": "",
+  "license": "MIT",
+  "dependencies": {
+    "@modelcontextprotocol/sdk": "^1.0.4",
+    "express": "^4.19.2",
+    "zod": "^3.24.1"
+  },
+  "devDependencies": {
+    "@types/express": "^4.17.21",
+    "@types/node": "^22.10.5",
+    "typescript": "^5.7.3"
+  },
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/your-username/cursor-background-agents-mcp-server"
+  },
+  "files": [
+    "dist",
+    "README.md",
+    "LICENSE"
+  ]
+}

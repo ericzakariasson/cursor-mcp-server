@@ -1,0 +1,9 @@
+{
+  "mcpServers": {
+    "cursor": {
+      "command": "node",
+      "args": ["dist/index.js"],
+      "envFile": ".env"
+    }
+  }
+}
