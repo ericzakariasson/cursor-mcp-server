@@ -99,6 +99,32 @@ export const GetAgentConversationSchema = z.object({
   agentId: z.string().describe("Unique identifier for the background agent"),
 });
 
+export const ListRepositoriesSchema = z.object({
+  search: z
+    .string()
+    .optional()
+    .describe("Filter repositories by name (case-insensitive)"),
+  owner: z
+    .string()
+    .optional()
+    .describe("Filter repositories by owner/organization name"),
+  limit: z
+    .number()
+    .int()
+    .min(1)
+    .max(100)
+    .optional()
+    .default(20)
+    .describe("Maximum number of repositories to return (default: 20)"),
+  offset: z
+    .number()
+    .int()
+    .min(0)
+    .optional()
+    .default(0)
+    .describe("Number of repositories to skip for pagination (default: 0)"),
+});
+
 // ============================================================================
 // Zod Schemas - Response Types
 // ============================================================================

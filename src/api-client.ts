@@ -1,5 +1,5 @@
 import { z } from "zod";
-import { ErrorResponseSchema } from "./schemas.js";
+import { ErrorResponseSchema, RepositoriesResponseSchema } from "./schemas.js";
 
 // Environment configuration
 export const CURSOR_API_KEY = process.env.CURSOR_API_KEY;
@@ -69,3 +69,40 @@ export async function makeCursorApiRequest<T extends z.ZodType>({
 
   return validationResult.data;
 }
+
+// Repository caching to handle large responses and rate limits
+class RepositoryCache {
+  private cache: z.infer<typeof RepositoriesResponseSchema> | null = null;
+  private lastFetch: number = 0;
+  private readonly TTL = 5 * 60 * 1000; // 5 minutes
+
+  async getRepositories(): Promise<
+    z.infer<typeof RepositoriesResponseSchema>
+  > {
+    // Return cached data if still valid
+    if (this.cache && Date.now() - this.lastFetch < this.TTL) {
+      return this.cache;
+    }
+
+    // Fetch fresh data from API
+    const result = await makeCursorApiRequest({
+      endpoint: "/v0/repositories",
+      responseSchema: RepositoriesResponseSchema,
+    });
+
+    // Update cache
+    this.cache = result;
+    this.lastFetch = Date.now();
+
+    return result;
+  }
+
+  // Clear cache manually if needed
+  clearCache(): void {
+    this.cache = null;
+    this.lastFetch = 0;
+  }
+}
+
+// Export singleton instance
+export const repositoryCache = new RepositoryCache();

@@ -3,7 +3,7 @@ import {
   ResourceTemplate,
 } from "@modelcontextprotocol/sdk/server/mcp.js";
 import { z } from "zod";
-import { makeCursorApiRequest } from "./api-client.js";
+import { makeCursorApiRequest, repositoryCache } from "./api-client.js";
 import {
   LaunchAgentSchema,
   AddFollowupSchema,
@@ -11,6 +11,7 @@ import {
   ListAgentsSchema,
   GetAgentStatusSchema,
   GetAgentConversationSchema,
+  ListRepositoriesSchema,
   AgentResponseSchema,
   AddFollowupResponseSchema,
   DeleteAgentResponseSchema,
@@ -215,14 +216,42 @@ export function createMCPServer() {
     {
       title: "List Repositories",
       description:
-        "List accessible GitHub repositories. WARNING: Strict rate limits (1/user/minute, 30/user/hour)",
-      inputSchema: {},
+        "List accessible GitHub repositories with optional filtering. Supports search by name, filter by owner, and pagination. Results are cached for 5 minutes to avoid rate limits (1/user/minute, 30/user/hour).",
+      inputSchema: ListRepositoriesSchema.shape,
     },
-    async () => {
-      const result = await makeCursorApiRequest({
-        endpoint: "/v0/repositories",
-        responseSchema: RepositoriesResponseSchema,
-      });
+    async (args) => {
+      const { search, owner, limit = 20, offset = 0 } = ListRepositoriesSchema.parse(args || {});
+
+      // Fetch repositories from cache (or API if cache expired)
+      const allRepos = await repositoryCache.getRepositories();
+
+      // Apply client-side filtering
+      let filteredRepos = allRepos.repositories;
+
+      // Filter by search term (case-insensitive)
+      if (search) {
+        const searchLower = search.toLowerCase();
+        filteredRepos = filteredRepos.filter((repo) =>
+          repo.name.toLowerCase().includes(searchLower)
+        );
+      }
+
+      // Filter by owner
+      if (owner) {
+        filteredRepos = filteredRepos.filter((repo) => repo.owner === owner);
+      }
+
+      // Apply pagination
+      const paginatedRepos = filteredRepos.slice(offset, offset + limit);
+
+      // Build response with metadata
+      const result = {
+        repositories: paginatedRepos,
+        total: filteredRepos.length,
+        limit,
+        offset,
+        hasMore: offset + limit < filteredRepos.length,
+      };
 
       return {
         content: [{ type: "text", text: JSON.stringify(result, null, 2) }],
