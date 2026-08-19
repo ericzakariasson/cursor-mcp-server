@@ -16,6 +16,18 @@ bun install
 echo "CURSOR_API_KEY=your-api-key-here" > .env
 ```
 
+3. Build the project:
+
+```bash
+bun run build
+```
+
+4. Run locally:
+
+```bash
+bun run start
+```
+
 ## Configure in Cursor
 
 Add to your Cursor MCP settings:
